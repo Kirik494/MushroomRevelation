@@ -18,7 +18,7 @@ def start(message):
     btn3 = types.KeyboardButton("🪬Rape🗿")
     markup.add(btn1, btn2, btn3)
     bot.send_message(message.from_user.id,
-                     "Братишка, добро пожаловать👋", reply_markup=markup)
+                     "Добро пожаловать👋", reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text', 'photo'])
@@ -53,7 +53,7 @@ def get_text_messages(message):
 
     elif message.text == "Offerings🤝":
         bot.send_message(message.from_user.id,
-                         "50г. - 30€💶\n100г. - 60€💶\n200г. - 100€💶 +🎁 Бесплатная доставка📦")
+                         "Тест")
 
     elif message.text == "Back🔙":
         bot.send_message(message.from_user.id,
@@ -67,7 +67,7 @@ def get_text_messages(message):
         img = open('2023-06-02 17.53.16.jpg', 'rb')
         bot.send_photo(message.chat.id, img)
         bot.send_message(message.from_user.id,
-                         "Этот раздел пуст, ведутся технические работы", reply_markup=markup1)
+                         "Этот раздел пуст", reply_markup=markup1)
 
     elif message.text == "Shrooming🤪👽👻":
         markupShroom = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -79,20 +79,20 @@ def get_text_messages(message):
                          reply_markup=markupShroom)
 
     elif message.text == "👨‍🍳Using👨‍🍳":
-        bot.send_message(message.from_user.id, "Описания псило")
+        bot.send_message(message.from_user.id, "Описания")
 
     elif message.text == "📜Effects📜":
-        bot.send_message(message.from_user.id, "Описания эффектов")
+        bot.send_message(message.from_user.id, "Описания")
 
     elif message.text == "🍄Product🍄":
-        bot.send_message(message.from_user.id, "Фото, цены, меню")
+        bot.send_message(message.from_user.id, "Фото")
 
     elif message.text == "🪬Rape🗿":
         markupRape = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btnRape = types.KeyboardButton("info")
         btnRape = types.KeyboardButton("product")
         bot.send_message(message.from_user.id,
-                         "Этот раздел пуст, ведутся технические работы")
+                         "Этот раздел пуст")
 
 
 bot.polling(none_stop=True, interval=0)
