@@ -89,8 +89,10 @@ def get_text_messages(message):
 
     elif message.text == "🪬Rape🗿":
         markupRape = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btnRape = types.KeyboardButton("info")
-        btnRape = types.KeyboardButton("product")
+        btnRape1 = types.KeyboardButton("Using🪬")
+        btnRape2 = types.KeyboardButton("Effects🗿")
+        btnRape3 = types.KeyboardButton("Product")
+        markupRape.add(btnRape1, btnRape2, btnRape3)
         bot.send_message(message.from_user.id,
                          "Этот раздел пуст")
 
