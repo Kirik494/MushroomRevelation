@@ -1,16 +1,31 @@
 # -*- coding: utf-8 -*-
 import telebot
-import PIL
 from telebot import types
-from PIL import Image
-Image
+import mysql.connector
 
+from src.model.Amanita import Amanita
+from src.model.Mushroom import Mushroom
+from src.model.Rape import Rape
 
 bot = telebot.TeleBot("6133847062:AAGbjK-paipNHgdU7q0aq-xYQs4AbL9kEL0")
+db = mysql.connector.connect(host='127.0.0.1', user='root', password='root', port=3306, database='db')
+cursor = db.cursor()
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)  # удаляем сообщение
+    bot.delete_message(message.chat.id, message.id)  # удаляем сообщение
+    sql_select = "SELECT * FROM user WHERE tg_id = %s"  # Составляем запрос для бд
+    td_id = (message.from_user.id,)
+    cursor.execute(sql_select, td_id)  # Выполняем запрос
+    result = cursor.fetchone()  # записываем результат
+
+    if result is None:  # проверяем если не было такого юзера, то записываем его в бд
+        sql_insert = "INSERT INTO user (tg_id, user_name) VALUES(%s, %s)"
+        cursor.execute(sql_insert,
+                       (message.from_user.id, message.from_user.username))
+        db.commit()
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton("🍄Fly agaric🍄")
@@ -18,83 +33,31 @@ def start(message):
     btn3 = types.KeyboardButton("🪬Rape🗿")
     markup.add(btn1, btn2, btn3)
     bot.send_message(message.from_user.id,
-                     "Братишка, добро пожаловать👋", reply_markup=markup)
+                     "Братишка " + message.from_user.username + ", добро пожаловать👋", reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text', 'photo'])
 def get_text_messages(message):
+    match message.text:
+        case "🍄Fly agaric🍄":
+            Amanita.sendMsg(bot, message)
+        case "🌈Magic mushrooms✨":
+            Mushroom.sendMsg(bot, message)
+        case "🪬Rape🗿":
+            Rape.sendMsg(bot, message)
 
-    if message.text == "🍄Fly agaric🍄":
-        markupFly = types.InlineKeyboardButton(
-            resize_keyboard=True)
-        btnFly1 = types.InlineKeyboardButton("Using👨‍🍳")
-        btnFly2 = types.InlineKeyboardButton("Effects📜")
-        btnFly3 = types.InlineKeyboardButton("Product🍄")
-        markupFly.add(btn1, btn2, btn3)
-        img = open('photo-output 2.JPG', 'rb')
-        bot.send_photo(message.chat.id, img)
-        bot.send_message(message.from_user.id,
-                         "Используй их разумно", reply_markup=markupFly)
 
-    elif message.text == "Using👨‍🍳":
-        bot.send_message(message.from_user.id, "Чтобы получить всю пользу для физического и психического здоровья, мухомор сушёный принимается от 0,6 до 3 граммов в сутки. Утром для бодрости и ясности мышления, работоспособности на целый день, вечером для крепкого и глубокого сна.\n\nP.S.  Мухомор рекомендуется употреблять перед едой, так как его всасывание происходит значительно быстрее чем после вкусного и сытого приема пищи.\n\n\nДобавки, усиливающие действие мухомора:\n\n- Лимон -  За счет повышения кислотности повышает лечебные свойства мухомора, а также увеличивает его биодоступность.\n\n- Шоколад -  Усиливает действие грибов. Дорогие быстрые углеводы (сахар и т.п.) выступают в роли транспортной молекулы. За счет быстрых углеводов мусцимол быстрее всасывается в организмом.\n\n- Мед -  Те же быстрые углеводы. Полностью перебивает вкус. Полезно тем кто любит жевать грибы, но не любит их вкус.\n\n- Зверобой -  ингибитор МАО. Усилит эффект, усиление прямо пропорционально количеству зверобоя. Можно заварить вместе с грибами, типа как чай.\n\n- Мелатонин(таблетки) -  Мелатонин вместе с мухомором употребляется для облегчения стрессовых реакций и депрессивных состояний, а также для улучшения сна. Употребляется сугубо перед сном.\n\n\nP.S.S.  Если вы решили принять более 2-3 грамм мухомора за один раз, то возможна тошнота и может клонить в сон, для нивелирования данных побочных эффектов необходимо заваривать мухомор так как обычный чай, температура кипятка не должна превышать 80 с°.")
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    splitStr = call.data.split('_')
+    obj = splitStr[0]
+    mthd = splitStr[1]
+    match obj:
+        case 'amanita':
+            if mthd == 'return':
+                Amanita.sendMsg(bot, call.message)
+            else:
+                Amanita.sendResp(bot, call.message, mthd)
 
-    elif message.text == "Effects📜":
-        bot.send_message(message.from_user.id, "Основные эффекты от микродозинга сушёного мухомора:\n- Тонизирует организм, прилив сил, уверенности.\n- Обеспечивает оптимальную работу всех органов в организме.\n- Обладает антимикробными свойствами.\n- Повышается сила и выносливость.\n- Природные болеутоляющие свойства.\n- Профилактика вирусных и бактериальных заболеваний.\n- Волна радости и эйфории, желание действовать, творить, общаться и развиваться.\n- Снятие симптомов депрессии и беспокойства.\n- Значительное улучшение социальных навыков.\n- Самоанализ и чувство внутренней ясности.\n- Помогает избавиться от вредных привычек.\n- После 1-2 недель приема нормализуется сон, становится крепким и глубоким")
-
-    elif message.text == "Product🍄":
-        markupProd = types.InlineKeyboardMarkup(resize_keyboard=True)
-        btnProd1 = types.InlineKeyboardButton("Offerings🤝")
-        btnProd2 = types.InlineKeyboardButton("Back🔙")
-        markupProd.add(btnProd1, btnProd2)
-        img = open('photo-output.JPG', 'rb')
-        bot.send_photo(message.chat.id, img)
-        bot.send_message(message.from_user.id, "Его Величество Мухомор «Amanita Muscaria» - врач и учитель. Знакомство с ним не оставляет равнодушным никого. Как сказал один известный человек-если ты встал на этот путь, то дороги назад нет. И это правда. Гриб изменяет как состояние физического скафандра, так и сущность человека. О лечебных свойствах гриба написать много, не буду углубляться в это. Если ты намерен познакомиться с Мухомором – наверняка ты знаешь о его волшебных и лечебных свойствах.\n\nP.S.  Грибы сушатся в электросушилке при температуре 40-45 градусов. Сушим только шляпки красного Мухомора🍄(без ножек). Предварительно перед сушкой грибы очищаются от песка и грязи.", reply_markup=markupProd)
-
-    elif message.text == "Offerings🤝":
-        bot.send_message(message.from_user.id,
-                         "Test")
-
-    elif message.text == "Back🔙":
-        bot.send_message(message.from_user.id,
-                         "Эта функция ещё не доступна", reply_markup=markup)
-
-    elif message.text == "🌈Magic mushrooms✨":
-        markup1 = types.InlineKeyboardMarkup(resize_keyboard=True)
-        btnMag1 = types.InlineKeyboardButton("Microdosing💊")
-        btnMag2 = types.InlineKeyboardButton("Shrooming🤪👽👻")
-        markup1.add(btnMag1, btnMag2)
-        img = open('2023-06-02 17.53.16.jpg', 'rb')
-        bot.send_photo(message.chat.id, img)
-        bot.send_message(message.from_user.id,
-                         "Этот раздел пуст", reply_markup=markup1)
-
-    elif message.text == "Shrooming🤪👽👻":
-        markupShroom = types.InlineKeyboardMarkup(resize_keyboard=True)
-        btnShroom1 = types.InlineKeyboardButton("👨‍🍳Using👨‍🍳")
-        btnShroom2 = types.InlineKeyboardButton("📜Effects📜")
-        btnShroom3 = types.InlineKeyboardButton("🍄Product🍄")
-        markupShroom.add(btnShroom1, btnShroom2, btnShroom3)
-        bot.send_message(message.chat.id, "Хорошего путешествия",
-                         reply_markup=markupShroom)
-
-    elif message.text == "👨‍🍳Using👨‍🍳":
-        bot.send_message(message.from_user.id, "Описания псило")
-
-    elif message.text == "📜Effects📜":
-        bot.send_message(message.from_user.id, "Описания эффектов")
-
-    elif message.text == "🍄Product🍄":
-        bot.send_message(message.from_user.id, "Фото, цены, меню")
-
-    elif message.text == "🪬Rape🗿":
-        markupRape = types.InlineKeyboardMarkup(resize_keyboard=True)
-        btnRape1 = types.InlineKeyboardButton("Using🪬")
-        btnRape2 = types.InlineKeyboardButton("Effects🗿")
-        btnRape3 = types.InlineKeyboardButton("Product")
-        markupRape.add(btnRape1, btnRape2, btnRape3)
-        bot.send_message(message.from_user.id,
-                         "Этот раздел пуст")
 
 bot.polling(none_stop=True, interval=0)
-

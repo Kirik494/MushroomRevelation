@@ -1,0 +1,14 @@
+services:
+
+  mysql:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
+    ports:
+      - 127.0.0.1:3306:3306
+    volumes:
+      - ./mysql/etc:/etc/mysql/conf.d
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/logs:/var/lib/mysql/logs
+
